@@ -34,7 +34,7 @@ Run
 To run the app:
 
 ```
-ruby app.rb
+nohup ruby app.rb -o 0.0.0.0 -p 4568 &
 ```
 
 or if you are using Docker:
