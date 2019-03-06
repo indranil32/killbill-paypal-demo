@@ -34,6 +34,8 @@ Run
 To run the app:
 
 ```
+export GW_URL=http://35.185.74.215:4568
+export KB_URL=http://35.185.74.215:8080
 nohup ruby app.rb -o 0.0.0.0 -p 4568 &
 ```
 

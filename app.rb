@@ -2,7 +2,7 @@ require 'sinatra'
 require 'killbill_client'
 
 set :kb_url, ENV['KB_URL'] || 'http://127.0.0.1:8080'
-
+set :gw_url, ENV['GW_URL'] || 'http://127.0.0.1:4568'
 #
 # Kill Bill configuration and helpers
 #
@@ -38,13 +38,13 @@ def create_kb_account(name, email, external_key, currency, address, postalCode, 
     account = KillBillClient::Model::Account.new
     account.name = name
     unless name.to_s.empty?
-      account.firstNameLength = name.split(' ').first.length
+      account.first_name_length = name.split(' ').first.length
     end
     account.email = email
     account.external_key = external_key
     account.currency = currency  
     account.address1 = address
-    account.postalCode = postalCode
+    account.postal_code = postalCode
     account.company = company
     account.city = city
     account.state = state
@@ -105,8 +105,8 @@ def generate_redirect(account, package, price, options)
                                          :kb_account_id => account.account_id,
                                          :currency => account.currency,
                                          :options => {
-                                           :return_url => "http://localhost:4568/charge?q=SUCCESS&accountId=#{account.account_id}&package=#{package}&price=#{price}",
-                                           :cancel_return_url => "http://localhost:4568/charge?q=FAILURE&accountId=#{account.account_id}",
+						 :return_url => "#{settings.gw_url}/charge?q=SUCCESS&accountId=#{account.account_id}&package=#{package}&price=#{price}",
+                                           :cancel_return_url => "#{settings.gw_url}/charge?q=FAILURE&accountId=#{account.account_id}",
                                            :billing_agreement => {
                                              :description => "New Rem Media OpenUMS demo subscription!!"
                                            }
@@ -126,7 +126,7 @@ get '/' do
   erb :index
 end
 
-get '/redirect' do
+post '/redirect' do
   # Create an account
   account = create_kb_account(params[:name], 
                                 params[:email], 
@@ -145,7 +145,7 @@ get '/redirect' do
   redirect to(generate_redirect(account, params[:package], params[:price], options))
 end
 
-post '/charge' do
+get '/charge' do
   account = get_kb_account(params[:accountId], options)
 
   # Add a payment method associated with the PayPal token
@@ -173,7 +173,7 @@ __END__
 
 @@index
   <span class="image"><img src="https://drive.google.com/uc?&amp;id=0Bw8rymjWckBHT3dKd0U3a1RfcUE&amp;w=960&amp;h=480" alt="uc?&amp;id=0Bw8rymjWckBHT3dKd0U3a1RfcUE&amp;w=960&amp;h=480"></span>
-  <form action="/charge" method="post">
+  <form action="/redirect" method="post">
     <article>
       <label class="amount">
         <span>Sports car, 30 days trial for only $10.00!</span>
@@ -197,7 +197,7 @@ __END__
     <input type="text" name="price" value="20">
     
     <br/>
-    <a href="/redirect">Pay with PayPal</a>
+    <button type="submit">Pay with PayPal</button>
   </form>
 
 @@charge
